@@ -50,7 +50,7 @@ def main():
     from django.test.utils import get_runner
     test_runner = get_runner(global_settings)
 
-    if django.VERSION > (1,2):
+    if django.VERSION > (1, 2):
         test_runner = test_runner()
         failures = test_runner.run_tests(['storages'])
     else:

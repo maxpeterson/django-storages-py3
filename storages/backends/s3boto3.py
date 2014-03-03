@@ -136,7 +136,7 @@ class S3BotoStorage(Storage):
         self._entries = {}
         if not access_key and not secret_key:
             access_key, secret_key = self._get_access_keys()
-        self.session = Session(session=CoreSession(session_vars={
+        self.session = Session(session=CoreSession({
             'ACCESS_KEY_NAME': access_key,
             'SECRET_KEY_NAME': secret_key,
         }))
@@ -218,14 +218,20 @@ class S3BotoStorage(Storage):
 
         return None, None
 
-    def _get_or_create_bucket(self, name):
-        """Retrieves a bucket if it exists, otherwise creates it."""
-        bucket = self.Bucket(bucket=name)
+    def _bucket_exists(self, bucket):
         try:
             # Raise an error if the bucket does not exist.
             # bucket.get()  # This alwasy returns ''
             bucket.get_acl()
         except self.connection_response_error:
+            return False
+        else:
+            return True
+
+    def _get_or_create_bucket(self, name):
+        """Retrieves a bucket if it exists, otherwise creates it."""
+        bucket = self.Bucket(bucket=name)
+        if not self._bucket_exists(bucket):
             if not AUTO_CREATE_BUCKET:
                 raise ImproperlyConfigured("Bucket specified by "
                     "AWS_STORAGE_BUCKET_NAME does not exist. "
